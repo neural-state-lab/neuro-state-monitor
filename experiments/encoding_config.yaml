@@ -1,0 +1,71 @@
+# Encoding classifier experiment configuration
+# Overrides base_config.yaml for encoding-specific settings
+
+experiment:
+  name: "encoding-classifier"
+  tracking_uri: "http://localhost:5000"
+
+data:
+  dataset: "peers"
+  dataset_accession: "ds004106"
+  task: "encoding"
+  test_size: 0.2
+  val_size: 0.1
+  random_state: 42
+
+preprocessing:
+  l_freq: 0.5
+  h_freq: 45.0
+  notch_freq: 60.0
+  ica_method: "fastica"
+  ref_channels: "average"
+  resample_sfreq: 256.0
+
+features:
+  # Encoding-specific time window (Duan et al. 2025)
+  tmin: 0.0
+  tmax: 0.6
+  baseline_tmin: -0.2
+  baseline_tmax: 0.0
+  compute_correlations: true
+  # Key features for encoding:
+  # - Alpha/beta desynchronization (10-30 Hz decrease = encoding)
+  # - Theta increase (4-8 Hz = memory engagement)
+  # - P300 amplitude
+  alpha_range: [8.0, 13.0]
+  beta_range: [13.0, 30.0]
+  theta_range: [4.0, 8.0]
+
+models:
+  svm:
+    kernel: "rbf"
+    C: 1.0
+    gamma: "scale"
+    class_weight: "balanced"
+  eegnet:
+    F1: 8
+    D: 2
+    F2: 16
+    kernel_length: 64
+    dropout_rate: 0.5
+    n_epochs: 100
+    lr: 0.001
+    batch_size: 32
+  shallownet:
+    n_filters_time: 40
+    filter_time_length: 25
+    dropout_rate: 0.5
+    n_epochs: 100
+    lr: 0.001
+    batch_size: 32
+
+evaluation:
+  cv_method: "kfold"  # "loso" or "kfold"
+  n_folds: 5
+  target_auc: 0.68  # EEG-ITNet baseline to beat
+
+baselines:
+  eeg_itnet:
+    auc: 0.68
+    accuracy: 0.65
+    f1: 0.63
