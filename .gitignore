@@ -53,3 +53,6 @@ Thumbs.db
 
 # DVC
 /data/*.dvc
+
+# Private documentation
+.private/
