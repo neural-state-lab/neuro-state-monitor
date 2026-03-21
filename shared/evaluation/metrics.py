@@ -41,9 +41,7 @@ class ClassificationMetrics:
             "recall": self.recall,
         }
         if self.cross_subject_generalization is not None:
-            metrics["cross_subject_generalization"] = (
-                self.cross_subject_generalization
-            )
+            metrics["cross_subject_generalization"] = self.cross_subject_generalization
         return metrics
 
 
@@ -72,9 +70,7 @@ def compute_classification_metrics(
             if average == "binary":
                 auc = roc_auc_score(y_true, y_prob)
             else:
-                auc = roc_auc_score(
-                    y_true, y_prob, multi_class="ovr", average=average
-                )
+                auc = roc_auc_score(y_true, y_prob, multi_class="ovr", average=average)
         except ValueError:
             logger.warning("auc_computation_failed")
             auc = 0.0

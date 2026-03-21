@@ -116,9 +116,7 @@ def _load_csv_as_raw(filepath: Path) -> mne.io.RawArray:
     return mne.io.RawArray(data, info)
 
 
-def apply_filters(
-    raw: mne.io.BaseRaw, config: PreprocessingConfig
-) -> mne.io.BaseRaw:
+def apply_filters(raw: mne.io.BaseRaw, config: PreprocessingConfig) -> mne.io.BaseRaw:
     """Apply band-pass and notch filters."""
     raw = raw.copy()
 
@@ -154,9 +152,7 @@ def interpolate_bad_channels(raw: mne.io.BaseRaw) -> mne.io.BaseRaw:
     return raw
 
 
-def apply_ica(
-    raw: mne.io.BaseRaw, config: PreprocessingConfig
-) -> mne.io.BaseRaw:
+def apply_ica(raw: mne.io.BaseRaw, config: PreprocessingConfig) -> mne.io.BaseRaw:
     """Run ICA for artifact rejection (eye blinks, muscle)."""
     ica = mne.preprocessing.ICA(
         n_components=config.ica_n_components,
@@ -195,9 +191,7 @@ def apply_ica(
     return raw
 
 
-def set_reference(
-    raw: mne.io.BaseRaw, config: PreprocessingConfig
-) -> mne.io.BaseRaw:
+def set_reference(raw: mne.io.BaseRaw, config: PreprocessingConfig) -> mne.io.BaseRaw:
     """Apply re-referencing."""
     raw = raw.copy()
     if config.ref_channels == "average":

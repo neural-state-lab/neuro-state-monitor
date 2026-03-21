@@ -43,19 +43,35 @@ def synthetic_raw(
     times = np.arange(n_samples) / sfreq
 
     # Use real 10-20 names so montage/digitization works
-    standard_names = ["Fp1", "Fp2", "F3", "F4", "C3", "C4", "P3", "P4",
-                      "O1", "O2", "F7", "F8", "T7", "T8", "P7", "P8"]
+    standard_names = [
+        "Fp1",
+        "Fp2",
+        "F3",
+        "F4",
+        "C3",
+        "C4",
+        "P3",
+        "P4",
+        "O1",
+        "O2",
+        "F7",
+        "F8",
+        "T7",
+        "T8",
+        "P7",
+        "P8",
+    ]
     ch_names = standard_names[:n_channels]
     info = mne.create_info(ch_names=ch_names, sfreq=sfreq, ch_types="eeg")
 
     # Build signal: sum of sinusoids at typical EEG frequencies
     data = np.zeros((n_channels, n_samples))
     freqs_and_amps = [
-        (2.0, 5e-6),    # delta
-        (6.0, 8e-6),    # theta
+        (2.0, 5e-6),  # delta
+        (6.0, 8e-6),  # theta
         (10.0, 10e-6),  # alpha
-        (20.0, 4e-6),   # beta
-        (35.0, 2e-6),   # gamma
+        (20.0, 4e-6),  # beta
+        (35.0, 2e-6),  # gamma
     ]
 
     for ch in range(n_channels):
@@ -87,11 +103,13 @@ def synthetic_events(
         n_events,
         dtype=int,
     )
-    events = np.column_stack([
-        event_samples,
-        np.zeros(n_events, dtype=int),
-        np.tile([1, 2], n_events // 2),  # alternating event IDs
-    ])
+    events = np.column_stack(
+        [
+            event_samples,
+            np.zeros(n_events, dtype=int),
+            np.tile([1, 2], n_events // 2),  # alternating event IDs
+        ]
+    )
     return events
 
 

@@ -99,9 +99,7 @@ def compute_band_power(
 
     if config.normalize:
         total_power = sum(band_powers.values())
-        band_powers = {
-            name: power / total_power for name, power in band_powers.items()
-        }
+        band_powers = {name: power / total_power for name, power in band_powers.items()}
 
     logger.info(
         "computed_band_power",
@@ -122,9 +120,7 @@ def compute_band_power_ratio(
         Array of shape (n_epochs, n_channels).
     """
     if numerator not in band_powers or denominator not in band_powers:
-        raise ValueError(
-            f"Band not found. Available: {list(band_powers.keys())}"
-        )
+        raise ValueError(f"Band not found. Available: {list(band_powers.keys())}")
 
     ratio = band_powers[numerator] / (band_powers[denominator] + 1e-10)
     logger.info("computed_band_ratio", ratio=f"{numerator}/{denominator}")

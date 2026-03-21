@@ -40,9 +40,7 @@ class TestSpectralFeatures:
         total = sum(powers.values())
         np.testing.assert_allclose(total, 1.0, atol=1e-6)
 
-    def test_extract_spectral_features(
-        self, synthetic_epochs: mne.Epochs
-    ) -> None:
+    def test_extract_spectral_features(self, synthetic_epochs: mne.Epochs) -> None:
         features = extract_spectral_features(synthetic_epochs)
         assert features.ndim == 2
         assert features.shape[0] == len(synthetic_epochs)

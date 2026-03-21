@@ -108,9 +108,7 @@ def analyze_subgroup_performance(
     if len(subgroup_results) >= 2:
         metric_names = ["accuracy", "auc", "f1", "precision", "recall"]
         for metric_name in metric_names:
-            values = [
-                getattr(sr.metrics, metric_name) for sr in subgroup_results
-            ]
+            values = [getattr(sr.metrics, metric_name) for sr in subgroup_results]
             disparity = max(values) - min(values)
             max_disparity[metric_name] = disparity
 

@@ -12,8 +12,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Optional
 
-import mne
 import mlflow
+import mne
 import numpy as np
 import structlog
 from sklearn.pipeline import Pipeline
@@ -79,17 +79,22 @@ class SVMClassifier(BaseEncodingModel):
         self.class_weight = class_weight
         self.random_state = random_state
 
-        self.pipeline = Pipeline([
-            ("scaler", StandardScaler()),
-            ("svm", SVC(
-                kernel=kernel,
-                C=C,
-                gamma=gamma,
-                class_weight=class_weight,
-                probability=True,
-                random_state=random_state,
-            )),
-        ])
+        self.pipeline = Pipeline(
+            [
+                ("scaler", StandardScaler()),
+                (
+                    "svm",
+                    SVC(
+                        kernel=kernel,
+                        C=C,
+                        gamma=gamma,
+                        class_weight=class_weight,
+                        probability=True,
+                        random_state=random_state,
+                    ),
+                ),
+            ]
+        )
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> None:
         """Train SVM on feature vectors."""

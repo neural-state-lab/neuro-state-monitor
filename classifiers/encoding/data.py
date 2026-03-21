@@ -161,8 +161,7 @@ def _extract_events(
     """
     # Try BIDS events.tsv first
     events_file = (
-        bids_root / f"sub-{subject}" / "eeg"
-        / f"sub-{subject}_task-{task}_events.tsv"
+        bids_root / f"sub-{subject}" / "eeg" / f"sub-{subject}_task-{task}_events.tsv"
     )
 
     if events_file.exists():
@@ -217,11 +216,13 @@ def _parse_bids_events(
         event_codes = np.ones(len(events_df), dtype=int)
         event_id = {"stimulus": 1}
 
-    events = np.column_stack([
-        samples,
-        np.zeros(len(samples), dtype=int),
-        event_codes,
-    ])
+    events = np.column_stack(
+        [
+            samples,
+            np.zeros(len(samples), dtype=int),
+            event_codes,
+        ]
+    )
 
     return events, event_id
 
@@ -246,7 +247,8 @@ def _extract_recall_labels(
     # Check if epochs already have metadata with recall info
     if epochs.metadata is not None:
         recall_cols = [
-            c for c in epochs.metadata.columns
+            c
+            for c in epochs.metadata.columns
             if any(kw in c.lower() for kw in ["recall", "remembered", "hit", "correct"])
         ]
         if recall_cols:
@@ -255,17 +257,16 @@ def _extract_recall_labels(
 
     # Check for behavioral data file
     beh_patterns = [
-        bids_root / f"sub-{subject}" / "beh"
-        / f"sub-{subject}_task-{task}_beh.tsv",
-        bids_root / f"sub-{subject}"
-        / f"sub-{subject}_task-{task}_beh.tsv",
+        bids_root / f"sub-{subject}" / "beh" / f"sub-{subject}_task-{task}_beh.tsv",
+        bids_root / f"sub-{subject}" / f"sub-{subject}_task-{task}_beh.tsv",
     ]
 
     for beh_file in beh_patterns:
         if beh_file.exists():
             beh_df = pd.read_csv(beh_file, sep="\t")
             recall_cols = [
-                c for c in beh_df.columns
+                c
+                for c in beh_df.columns
                 if any(kw in c.lower() for kw in ["recall", "remembered", "hit"])
             ]
             if recall_cols and len(beh_df) >= n_epochs:
@@ -290,11 +291,13 @@ def _extract_recall_labels(
         )
         labels = (event_codes % 2).astype(int)
 
-    metadata = pd.DataFrame({
-        "event_code": event_codes,
-        "recalled": labels,
-        "subject": subject,
-    })
+    metadata = pd.DataFrame(
+        {
+            "event_code": event_codes,
+            "recalled": labels,
+            "subject": subject,
+        }
+    )
     return labels, metadata
 
 

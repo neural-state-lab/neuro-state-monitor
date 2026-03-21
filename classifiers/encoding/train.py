@@ -29,7 +29,11 @@ from classifiers.encoding.features import (
     extract_encoding_features,
 )
 from classifiers.encoding.models import BaseEncodingModel, ModelResult, create_model
-from shared.evaluation.cross_validation import CVResult, grouped_kfold, leave_one_subject_out
+from shared.evaluation.cross_validation import (
+    CVResult,
+    grouped_kfold,
+    leave_one_subject_out,
+)
 from shared.evaluation.metrics import (
     ClassificationMetrics,
     compare_with_baseline,
@@ -106,9 +110,7 @@ def train_and_evaluate(
 
     # Predict and evaluate
     result = model.predict(X_test)
-    metrics = compute_classification_metrics(
-        y_test, result.y_pred, result.y_prob
-    )
+    metrics = compute_classification_metrics(y_test, result.y_pred, result.y_prob)
 
     logger.info(
         "train_and_evaluate_complete",
@@ -159,9 +161,7 @@ def run_cross_validation(
     if cv_method == "loso":
         cv_result = leave_one_subject_out(X, y, subjects, fit_predict_fn)
     else:
-        cv_result = grouped_kfold(
-            X, y, subjects, fit_predict_fn, n_folds=n_folds
-        )
+        cv_result = grouped_kfold(X, y, subjects, fit_predict_fn, n_folds=n_folds)
 
     logger.info(
         "cross_validation_complete",
@@ -209,22 +209,28 @@ def run_experiment(
     feature_config = EncodingFeatureConfig()
 
     # Start MLflow run
-    run_context = mlflow.start_run(run_name=f"encoding-{model_type}") if use_mlflow else _noop_context()
+    run_context = (
+        mlflow.start_run(run_name=f"encoding-{model_type}")
+        if use_mlflow
+        else _noop_context()
+    )
 
     with run_context:
         if use_mlflow:
             # Log parameters
-            mlflow.log_params({
-                "model_type": model_type,
-                "cv_method": cv_method,
-                "n_train_subjects": len(split.train_subjects),
-                "n_val_subjects": len(split.val_subjects),
-                "n_test_subjects": len(split.test_subjects),
-                "n_train_epochs": len(split.train.epochs),
-                "n_test_epochs": len(split.test.epochs),
-                "feature_tmin": feature_config.tmin,
-                "feature_tmax": feature_config.tmax,
-            })
+            mlflow.log_params(
+                {
+                    "model_type": model_type,
+                    "cv_method": cv_method,
+                    "n_train_subjects": len(split.train_subjects),
+                    "n_val_subjects": len(split.val_subjects),
+                    "n_test_subjects": len(split.test_subjects),
+                    "n_train_epochs": len(split.train.epochs),
+                    "n_test_epochs": len(split.test.epochs),
+                    "feature_tmin": feature_config.tmin,
+                    "feature_tmax": feature_config.tmax,
+                }
+            )
 
             log_model_metadata(
                 dataset_accession="ds004106",
@@ -297,9 +303,7 @@ class _noop_context:
 
 def main() -> None:
     """CLI entry point for training."""
-    parser = argparse.ArgumentParser(
-        description="Train encoding classifier"
-    )
+    parser = argparse.ArgumentParser(description="Train encoding classifier")
     parser.add_argument(
         "--config",
         type=Path,

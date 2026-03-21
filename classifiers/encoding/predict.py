@@ -11,13 +11,20 @@ import argparse
 from pathlib import Path
 from typing import Optional
 
-import mne
 import mlflow
+import mne
 import numpy as np
 import structlog
 
-from classifiers.encoding.features import EncodingFeatureConfig, extract_encoding_features
-from shared.preprocessing.pipeline import PreprocessingConfig, load_raw, preprocess_and_epoch
+from classifiers.encoding.features import (
+    EncodingFeatureConfig,
+    extract_encoding_features,
+)
+from shared.preprocessing.pipeline import (
+    PreprocessingConfig,
+    load_raw,
+    preprocess_and_epoch,
+)
 
 logger = structlog.get_logger(__name__)
 
@@ -144,9 +151,7 @@ def predict_from_epochs(
 
 def main() -> None:
     """CLI entry point for prediction."""
-    parser = argparse.ArgumentParser(
-        description="Run encoding prediction on EEG data"
-    )
+    parser = argparse.ArgumentParser(description="Run encoding prediction on EEG data")
     parser.add_argument(
         "--input",
         type=Path,

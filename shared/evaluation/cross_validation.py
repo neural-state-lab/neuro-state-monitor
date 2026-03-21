@@ -72,9 +72,7 @@ def leave_one_subject_out(
     unique_subjects = np.unique(subjects)
     logger.info("starting_loso_cv", n_subjects=len(unique_subjects))
 
-    for fold_idx, (train_idx, test_idx) in enumerate(
-        logo.split(X, y, groups=subjects)
-    ):
+    for fold_idx, (train_idx, test_idx) in enumerate(logo.split(X, y, groups=subjects)):
         X_train, X_test = X[train_idx], X[test_idx]
         y_train, y_test = y[train_idx], y[test_idx]
         test_subj = list(np.unique(subjects[test_idx]))
@@ -135,9 +133,7 @@ def grouped_kfold(
         stratified=stratified,
     )
 
-    for fold_idx, (train_idx, test_idx) in enumerate(
-        cv.split(X, y, groups=subjects)
-    ):
+    for fold_idx, (train_idx, test_idx) in enumerate(cv.split(X, y, groups=subjects)):
         X_train, X_test = X[train_idx], X[test_idx]
         y_train, y_test = y[train_idx], y[test_idx]
         test_subj = list(np.unique(subjects[test_idx].astype(str)))
@@ -167,12 +163,8 @@ def _aggregate_cv_results(
     metric_dicts = [m.to_dict() for m in fold_metrics]
     keys = metric_dicts[0].keys()
 
-    mean_values = {
-        key: np.mean([d[key] for d in metric_dicts]) for key in keys
-    }
-    std_values = {
-        key: np.std([d[key] for d in metric_dicts]) for key in keys
-    }
+    mean_values = {key: np.mean([d[key] for d in metric_dicts]) for key in keys}
+    std_values = {key: np.std([d[key] for d in metric_dicts]) for key in keys}
 
     mean_metrics = ClassificationMetrics(
         accuracy=mean_values["accuracy"],

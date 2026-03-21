@@ -58,9 +58,7 @@ def start_run(
     return run
 
 
-def _log_nested_params(
-    params: dict[str, Any], prefix: str = ""
-) -> None:
+def _log_nested_params(params: dict[str, Any], prefix: str = "") -> None:
     """Flatten and log nested config dict as MLflow params."""
     for key, value in params.items():
         full_key = f"{prefix}{key}" if prefix else key

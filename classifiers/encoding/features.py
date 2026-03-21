@@ -14,8 +14,16 @@ import mne
 import numpy as np
 import structlog
 
-from shared.features.erp import ERPComponent, extract_component_amplitude, extract_mean_amplitude
-from shared.features.spectral import SpectralConfig, compute_band_power, compute_band_power_ratio
+from shared.features.erp import (
+    ERPComponent,
+    extract_component_amplitude,
+    extract_mean_amplitude,
+)
+from shared.features.spectral import (
+    SpectralConfig,
+    compute_band_power,
+    compute_band_power_ratio,
+)
 
 logger = structlog.get_logger(__name__)
 
@@ -306,18 +314,21 @@ def extract_encoding_features(
 
     # 4. Regional summaries
     frontal_theta = compute_regional_power(
-        epochs, FRONTAL_CHANNELS, config.theta_range, config,
+        epochs,
+        FRONTAL_CHANNELS,
+        config.theta_range,
+        config,
     )
     feature_arrays.append(frontal_theta[:, np.newaxis])
     feature_names.append("frontal_theta_mean")
 
     parietal_alpha_desync = compute_desynchronization(
-        epochs, config.alpha_range, config,
+        epochs,
+        config.alpha_range,
+        config,
     )
     parietal_indices = [
-        epochs.ch_names.index(ch)
-        for ch in PARIETAL_CHANNELS
-        if ch in epochs.ch_names
+        epochs.ch_names.index(ch) for ch in PARIETAL_CHANNELS if ch in epochs.ch_names
     ]
     if parietal_indices:
         parietal_mean = parietal_alpha_desync[:, parietal_indices].mean(axis=1)
@@ -330,9 +341,7 @@ def extract_encoding_features(
     for component in config.erp_components:
         amp = extract_mean_amplitude(epochs, component)
         feature_arrays.append(amp)
-        feature_names.extend(
-            [f"{component.name}_amp_{ch}" for ch in epochs.ch_names]
-        )
+        feature_names.extend([f"{component.name}_amp_{ch}" for ch in epochs.ch_names])
 
     # 6. Inter-electrode correlations (optional, high-dimensional)
     if config.compute_correlations:

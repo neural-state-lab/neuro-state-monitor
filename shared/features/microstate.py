@@ -161,16 +161,22 @@ def compute_microstate_stats(
     n_times = len(labels)
 
     # Coverage
-    coverage = np.array(
-        [(labels == s).sum() / n_times for s in range(n_states)]
-    )
+    coverage = np.array([(labels == s).sum() / n_times for s in range(n_states)])
 
     # Duration: mean length of contiguous segments
     durations = []
     for state in range(n_states):
-        runs = np.diff(np.where(np.concatenate(
-            ([labels[0] != state], labels[:-1] != labels[1:], [True])
-        ))[0])[::2] if state in labels else []
+        runs = (
+            np.diff(
+                np.where(
+                    np.concatenate(
+                        ([labels[0] != state], labels[:-1] != labels[1:], [True])
+                    )
+                )[0]
+            )[::2]
+            if state in labels
+            else []
+        )
         if len(runs) > 0:
             durations.append(np.mean(runs) / sfreq * 1000)  # ms
         else:
@@ -247,11 +253,13 @@ def extract_microstate_features(
     for epoch_data in data:
         labels = backfit_microstates(epoch_data, maps)
         stats = compute_microstate_stats(labels, sfreq, config.n_states)
-        epoch_features = np.concatenate([
-            stats["coverage"],
-            stats["duration"],
-            stats["occurrence"],
-        ])
+        epoch_features = np.concatenate(
+            [
+                stats["coverage"],
+                stats["duration"],
+                stats["occurrence"],
+            ]
+        )
         features_list.append(epoch_features)
 
     features = np.array(features_list)

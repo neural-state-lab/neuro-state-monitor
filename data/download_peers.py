@@ -91,9 +91,7 @@ def download_peers_datalad(output_dir: Path | None = None) -> Path:
     output_dir = output_dir or DATA_DIR
 
     if not _check_datalad():
-        raise RuntimeError(
-            "datalad not installed. Install with: pip install datalad"
-        )
+        raise RuntimeError("datalad not installed. Install with: pip install datalad")
 
     url = f"https://github.com/OpenNeuroDatasets/{OPENNEURO_DATASET_ID}.git"
     logger.info("cloning_with_datalad", url=url, dest=str(output_dir))
