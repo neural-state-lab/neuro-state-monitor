@@ -1,0 +1,55 @@
+# Data — never commit raw datasets
+data/raw/
+data/processed/
+*.edf
+*.fif
+*.set
+*.fdt
+*.nwb
+*.h5
+
+# Models & artifacts
+models/
+artifacts/
+*.pkl
+*.joblib
+*.onnx
+*.pt
+*.pth
+
+# MLflow
+mlruns/
+.mlflow/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environment
+.venv/
+venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# DVC
+/data/*.dvc
