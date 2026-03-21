@@ -1,0 +1,39 @@
+# Default feature extraction configuration
+# Classifiers override specific sections via their own configs
+
+spectral:
+  bands:
+    delta: [0.5, 4.0]
+    theta: [4.0, 8.0]
+    alpha: [8.0, 13.0]
+    beta: [13.0, 30.0]
+    gamma: [30.0, 45.0]
+  method: "welch"
+  n_fft: 256
+  normalize: true
+
+connectivity:
+  method: "plv"
+  fmin: 4.0
+  fmax: 30.0
+  faverage: true
+  band_ranges:
+    theta: [4.0, 8.0]
+    alpha: [8.0, 13.0]
+    beta: [13.0, 30.0]
+
+erp:
+  components:
+    - name: "P300"
+      tmin: 0.25
+      tmax: 0.5
+      polarity: "positive"
+    - name: "N400"
+      tmin: 0.3
+      tmax: 0.6
+      polarity: "negative"
+
+microstate:
+  n_states: 4
+  max_iter: 1000
+  gfp_percentile: 95.0
