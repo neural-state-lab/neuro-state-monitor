@@ -58,7 +58,6 @@ def get_bids_subjects(bids_root: Path) -> list[str]:
 
 def get_bids_tasks(bids_root: Path, subject: str) -> list[str]:
     """List available tasks for a given subject."""
-    from mne_bids import BIDSPath
 
     sub_dir = Path(bids_root) / f"sub-{subject}"
     tasks: set[str] = set()

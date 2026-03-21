@@ -179,7 +179,7 @@ def main() -> None:
         model_path=args.model_path,
     )
 
-    print(f"\nResults:")
+    print("\nResults:")
     print(f"  Epochs analyzed: {results['n_epochs']}")
     print(f"  Predicted recalled: {results['n_predicted_recalled']}")
     print(f"  Predicted forgotten: {results['n_predicted_forgotten']}")

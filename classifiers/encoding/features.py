@@ -16,7 +16,6 @@ import structlog
 
 from shared.features.erp import (
     ERPComponent,
-    extract_component_amplitude,
     extract_mean_amplitude,
 )
 from shared.features.spectral import (

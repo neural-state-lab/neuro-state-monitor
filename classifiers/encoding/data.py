@@ -21,7 +21,6 @@ from shared.preprocessing.bids import get_bids_subjects, read_bids_raw
 from shared.preprocessing.pipeline import (
     PreprocessingConfig,
     preprocess_and_epoch,
-    preprocess_raw,
 )
 
 logger = structlog.get_logger(__name__)

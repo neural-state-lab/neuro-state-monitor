@@ -186,8 +186,8 @@ def run_experiment(
 
     Returns dict with metrics, cv_results, and model.
     """
-    # Load config
-    config = load_config(config_path)
+    # Load config (available for future use in model/feature config overrides)
+    _config = load_config(config_path)  # noqa: F841
 
     # Setup MLflow
     try:

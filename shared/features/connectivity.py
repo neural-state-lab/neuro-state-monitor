@@ -42,8 +42,6 @@ def compute_connectivity(
     if config is None:
         config = ConnectivityConfig()
 
-    indices = None  # all-to-all
-
     con = spectral_connectivity_epochs(
         epochs,
         method=config.method,

@@ -2,14 +2,12 @@
 
 import mne
 import numpy as np
-import pytest
 
 from shared.preprocessing.pipeline import (
     PreprocessingConfig,
     apply_filters,
     create_epochs,
     interpolate_bad_channels,
-    load_raw,
     preprocess_raw,
     set_reference,
 )

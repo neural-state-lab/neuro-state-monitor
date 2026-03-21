@@ -13,7 +13,6 @@ from dataclasses import dataclass
 from typing import Optional
 
 import mlflow
-import mne
 import numpy as np
 import structlog
 from sklearn.pipeline import Pipeline
@@ -192,7 +191,6 @@ class EEGNetClassifier(BaseEncodingModel):
             X: Raw epoch data of shape (n_epochs, n_channels, n_times).
             y: Labels of shape (n_epochs,).
         """
-        import torch
         from braindecode import EEGClassifier
 
         self.n_channels = X.shape[1]

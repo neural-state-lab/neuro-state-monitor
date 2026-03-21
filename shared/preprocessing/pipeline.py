@@ -4,7 +4,7 @@ All classifiers share this pipeline. Each step is configurable
 and logged to MLflow for reproducibility.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 

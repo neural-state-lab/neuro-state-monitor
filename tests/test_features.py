@@ -2,11 +2,9 @@
 
 import mne
 import numpy as np
-import pytest
 
 from shared.features.erp import (
     ERPComponent,
-    ERPConfig,
     extract_component_amplitude,
     extract_component_latency,
     extract_erp_features,

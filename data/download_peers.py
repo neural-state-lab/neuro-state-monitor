@@ -10,7 +10,6 @@ Requires: openneuro-py or datalad for full download
 """
 
 import subprocess
-import sys
 from pathlib import Path
 
 import structlog
@@ -24,7 +23,7 @@ DATA_DIR = Path(__file__).parent / "raw" / "peers"
 def _check_openneuro_cli() -> bool:
     """Check if openneuro-py is available."""
     try:
-        import openneuro
+        import openneuro  # noqa: F401
 
         return True
     except ImportError:

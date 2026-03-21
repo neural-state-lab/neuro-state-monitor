@@ -8,8 +8,6 @@ Dataset: EEG Database from UCI Machine Learning Repository
 Source: https://archive.ics.uci.edu/dataset/121/eeg+database
 """
 
-import gzip
-import shutil
 import tarfile
 from pathlib import Path
 from urllib.request import urlretrieve
