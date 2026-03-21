@@ -5,7 +5,7 @@ Computes power spectral density across standard frequency bands
 """
 
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Any, Optional
 
 import mne
 import numpy as np
@@ -50,13 +50,16 @@ def compute_psd(
     if config is None:
         config = SpectralConfig()
 
-    spectrum = epochs.compute_psd(
-        method=config.method,
-        fmin=config.fmin,
-        fmax=config.fmax,
-        n_fft=config.n_fft,
-        n_overlap=config.n_overlap,
-    )
+    psd_kwargs: dict[str, Any] = {
+        "method": config.method,
+        "fmin": config.fmin,
+        "fmax": config.fmax,
+        "n_fft": config.n_fft,
+    }
+    if config.n_overlap is not None:
+        psd_kwargs["n_overlap"] = config.n_overlap
+
+    spectrum = epochs.compute_psd(**psd_kwargs)
 
     psd = spectrum.get_data()
     freqs = spectrum.freqs
