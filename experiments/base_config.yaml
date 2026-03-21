@@ -1,0 +1,57 @@
+# Base experiment configuration for Neuro State Monitor
+# Classifiers override specific fields via their own configs
+
+experiment:
+  name: "neuro-state-monitor"
+  tracking_uri: "http://localhost:5000"
+
+preprocessing:
+  l_freq: 0.5
+  h_freq: 45.0
+  notch_freq: 60.0
+  ica_method: "fastica"
+  ica_n_components: null  # auto-determine
+  ref_channels: "average"
+  resample_sfreq: null
+
+epoching:
+  tmin: -0.2
+  tmax: 0.8
+  baseline: [null, 0]
+
+features:
+  spectral:
+    bands:
+      delta: [0.5, 4.0]
+      theta: [4.0, 8.0]
+      alpha: [8.0, 13.0]
+      beta: [13.0, 30.0]
+      gamma: [30.0, 45.0]
+    method: "welch"
+    n_fft: 256
+  connectivity:
+    method: "plv"  # phase locking value
+    fmin: 4.0
+    fmax: 30.0
+  erp:
+    components:
+      - name: "P300"
+        tmin: 0.25
+        tmax: 0.5
+      - name: "N400"
+        tmin: 0.3
+        tmax: 0.6
+
+training:
+  random_state: 42
+  n_folds: 5
+  test_size: 0.2
+  validation_size: 0.1
+
+model_registry:
+  metadata_schema:
+    - dataset_accession
+    - preprocessing_version
+    - participant_count
+    - classifier_type
+    - target_state
