@@ -1,0 +1,81 @@
+# Addiction classifier experiment configuration
+
+experiment:
+  name: "addiction-classifier"
+  tracking_uri: "http://localhost:5000"
+
+data:
+  dataset: "uci_eeg"
+  dataset_accession: "uci-eeg-121"
+  n_subjects: 122
+  n_alcoholic: 77
+  n_control: 45
+  channels: 64
+  sfreq: 256
+  test_size: 0.2
+  val_size: 0.1
+  random_state: 42
+
+preprocessing:
+  l_freq: 0.5
+  h_freq: 45.0
+  notch_freq: 60.0
+  ica_method: "fastica"
+  ica_n_components: 20
+  ref_channels: "average"
+
+features:
+  # Addiction-specific features
+  beta_range: [13.0, 30.0]
+  alpha_range: [8.0, 13.0]
+  theta_range: [4.0, 8.0]
+  connectivity_method: "plv"
+  include_full_spectral: true
+  include_beta_connectivity: true
+  # Key markers:
+  # - Resting beta elevated in addiction (hyperarousal)
+  # - Alpha connectivity disrupted
+  # - P300 amplitude reduced (impaired attention)
+  # - Beta connectivity altered (Tian 2024)
+
+models:
+  svm:
+    kernel: "rbf"
+    C: 10.0
+    gamma: "scale"
+    class_weight: "balanced"
+  random_forest:
+    n_estimators: 200
+    max_depth: null
+    class_weight: "balanced"
+  eegnet:
+    F1: 8
+    D: 2
+    F2: 16
+    kernel_length: 64
+    dropout_rate: 0.5
+    n_epochs: 100
+    lr: 0.001
+    batch_size: 64
+  dscnet:
+    n_temporal_filters: 40
+    n_spatial_filters: 40
+    dropout_rate: 0.5
+    n_epochs: 100
+    lr: 0.001
+    batch_size: 64
+
+evaluation:
+  cv_method: "kfold"
+  n_folds: 5
+  target_accuracy: 0.95  # Published CNN baseline
+
+baselines:
+  cnn_uci:
+    accuracy: 0.95
+    auc: 0.97
+    f1: 0.95
+  svm_spectral:
+    accuracy: 0.85
+    auc: 0.90
+    f1: 0.84
