@@ -20,7 +20,6 @@ import pandas as pd
 import structlog
 from sklearn.model_selection import train_test_split
 
-
 logger = structlog.get_logger(__name__)
 
 DEFAULT_UCI_DIR = Path(__file__).parents[2] / "data" / "raw" / "uci_eeg"
