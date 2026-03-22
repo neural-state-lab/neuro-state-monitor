@@ -44,25 +44,62 @@ neuro-state-monitor/
 
 ## Tech Stack
 
-- **Signal processing:** MNE-Python, NeuroKit2
-- **ML/DL:** Braindecode (PyTorch), scikit-learn
-- **Experiment tracking:** MLflow or W&B
-- **Data versioning:** DVC
-- **Data format:** NWB (PyNWB), BIDS (MNE-BIDS)
-- **Deployment:** BentoML or TorchServe, Docker, Kubernetes
-- **Monitoring:** NannyML, Prometheus + Grafana
-- **Language:** Python 3.10+
+### Core
+- **Language:** Python 3.10+ (constrained <3.13 for braindecode compat)
 - **Package manager:** Poetry
-- **Testing:** pytest
+- **Testing:** pytest + GitHub Actions CI
+- **Experiment tracking:** MLflow
+- **Logging:** structlog
+
+### Signal Processing & Preprocessing
+- **MNE-Python** — raw EEG loading, filtering, epoching, re-referencing
+- **mne-icalabel** — ICA component auto-labeling (ICLabel neural net, 7 component types)
+- **autoreject** — automated per-channel epoch rejection thresholds via cross-validation
+- **MNE-BIDS** — BIDS format reading/writing
+- **MNE-Connectivity** — PLV, coherence, spectral connectivity
+
+### Feature Extraction
+- **specparam** (formerly FOOOF) — parameterized spectral analysis (separates 1/f from oscillations)
+- **antropy** — entropy/complexity features (permutation entropy, sample entropy, Hjorth, LZC)
+- **pycrostates** — EEG microstate analysis (JOSS-reviewed, replaces custom k-means)
+- **NeuroKit2** — multimodal physiological signals (ECG/EDA/respiration for wearable TMR)
+
+### ML/DL Models
+- **Braindecode** — EEGNet, ShallowFBCSPNet (PyTorch-based EEG deep learning)
+- **scikit-learn** — SVM, Random Forest, preprocessing pipelines
+- **TorchEEG** — EEG augmentation transforms, 30+ architectures, LOSO splits
+- **selfEEG** — SSL pre-training (SimCLR/BYOL) for cross-subject generalization
+
+### Sleep/TMR Pipeline
+- **YASA** — automated sleep staging, spindle detection, slow oscillation detection (eLife 2021, 381 citations)
+
+### fMRI Pipeline (PTSD)
+- **fMRIPrep** — standard fMRI preprocessing (Docker container, 4400 citations)
+- **Nilearn** — fMRI ML: GLM, connectivity, decoding, parcellation
+
+### Benchmarking & Evaluation
+- **MOABB** — standardized BCI benchmarking across 60+ datasets
+
+### Deployment & Production
+- **BentoML** — model serving (supports mixed model types: SVM + CNN + LightGBM)
+- **MNE-LSL** — real-time EEG streaming (JOSS 2025, LSL integration with MNE)
+- **NannyML** — post-deployment drift detection + performance estimation
+- **Docker** — containerization for MLflow server + model serving
+
+### Explainability
+- **captum** — Integrated Gradients + DeepLIFT (validated for EEG DL)
+- **pytorch-grad-cam** — spatial topography heatmaps for CNN models
 
 ## Build Sequence
 
-The classifiers are built in a specific order — each one reuses infrastructure from the previous:
-
-1. **Encoding classifier** (PEERS dataset) — builds the entire core pipeline
-2. **Addiction classifier** (UCI EEG) — same pipeline, different features
-3. **PTSD classifier** (ENIGMA rsfMRI) — extends to fMRI via Nilearn
-4. **TMR orchestration** (sleep EEG) — most ambitious, benefits from all prior work
+| Milestone | Status | What |
+|-----------|--------|------|
+| M1: Foundation | ✅ Done | Shared pipeline, features, evaluation, MLflow, tests |
+| M2: Encoding classifier | ✅ Done | PEERS data, encoding features, SVM/EEGNet/ShallowNet |
+| M3: Addiction classifier | ✅ Done | UCI data, addiction features, SVM/RF/EEGNet/DSCnet |
+| M4: Ecosystem refactor | 🔲 Next | Replace custom code with mne-icalabel, autoreject, pycrostates, specparam, antropy |
+| M5: Deployment & serving | 🔲 | BentoML API, MNE-LSL streaming, NannyML monitoring, Docker |
+| M6: PTSD + TMR | 🔲 | fMRIPrep+Nilearn for PTSD, YASA for sleep/TMR, selfEEG for cross-subject |
 
 ## Datasets
 
@@ -82,6 +119,54 @@ Raw data is NEVER committed. Each dataset has download instructions in `data/REA
 
 ### Transfer learning sources
 - DEAP, DREAMER, SEED (emotion EEG — requestable)
+
+## Build vs Reuse Rule
+
+Before writing any new module, check if a mature package already does it:
+
+1. Search PyPI and GitHub for existing solutions
+2. Check: actively maintained? (commits in last 6 months)
+3. Check: >100 GitHub stars, published docs, peer-reviewed paper?
+4. If mature package exists → wrap with thin adapter (MLflow logging, config)
+5. If no mature package → build it, document WHY in module docstring
+
+### Use Library (DO NOT rebuild)
+
+| Need | Use This | NOT This |
+|------|----------|----------|
+| ICA component labeling | `mne-icalabel` (ICLabel, 7 types) | manual `find_bads_eog`/`find_bads_muscle` |
+| Bad epoch rejection | `autoreject` (learned thresholds) | manual amplitude thresholds |
+| Microstate analysis | `pycrostates` (JOSS 2022) | custom k-means implementation |
+| Sleep staging | `YASA` (eLife 2021, 381 cites) | building classifier from scratch |
+| Spindle/SO detection | `YASA.spindles_detect()` / `sw_detect()` | custom detectors |
+| Spectral analysis | `specparam` (Nature Neuro 2020) | raw Welch PSD only |
+| Entropy features | `antropy` (numba-accelerated) | custom entropy functions |
+| BCI benchmarking | `MOABB` (60+ datasets) | manual LOSO benchmark code |
+| fMRI preprocessing | `fMRIPrep` (Docker, 4400 cites) | custom fMRI pipeline |
+| fMRI ML | `Nilearn` (JOSS-reviewed) | custom fMRI analysis |
+| Real-time streaming | `MNE-LSL` (JOSS 2025) | custom LSL bindings |
+| Model serving | `BentoML` (mixed model types) | FastAPI+TorchServe |
+| Drift detection | `NannyML` (CBPE, 1800 stars) | custom monitoring |
+| EEG augmentation | `TorchEEG` transforms | custom augmentation |
+| SSL pre-training | `selfEEG` (SimCLR/BYOL for EEG) | training from scratch |
+| DL explainability | `captum` + `pytorch-grad-cam` | saliency maps (they fail validity tests) |
+
+### Skip (stale or superseded)
+
+| Package | Why Skip |
+|---------|----------|
+| `mne-features` | Last release 2021, stale. Use `antropy` + `mne-connectivity` instead |
+| `pylsl` | Superseded by `MNE-LSL` |
+| TorchServe alone | PyTorch-only, can't serve sklearn/LightGBM |
+
+### Our Value-Add (what we build custom)
+
+- Classifier-specific feature combinations and training pipelines
+- MLflow experiment tracking integration across all classifiers
+- Subject-based cross-validation and demographic fairness evaluation
+- Training/inference CLI orchestration
+- Multi-classifier shared architecture (the unified system is the novelty)
+- EEG signal quality monitoring wrapper (no mature EEG-specific SQI library exists — publishable contribution)
 
 ## Code Conventions
 

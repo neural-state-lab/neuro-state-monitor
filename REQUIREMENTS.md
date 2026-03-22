@@ -121,41 +121,89 @@ A unified EEG-based system with four pluggable classifiers detecting brain state
 
 ---
 
-## Milestone 4: Deployment & Serving
+## Milestone 4: Ecosystem Refactor — Replace Custom Code with Mature Packages
 
-### 17. Model Serving API
-- `shared/serving/api.py` — REST API for real-time inference
+Based on ecosystem audit (March 2026), replace hand-built modules with JOSS-reviewed, peer-published packages.
+
+### 18. Replace ICA artifact detection with mne-icalabel
+- Replace `find_bads_eog` + `find_bads_muscle` with ICLabel neural network (7 component types)
+- `mne_icalabel.label_components(raw, ica, method="iclabel")` — drop-in replacement
+- Update `shared/preprocessing/pipeline.py`
+
+### 19. Replace manual epoch rejection with autoreject
+- Replace manual amplitude thresholds with learned per-channel thresholds
+- `ar = AutoReject(); epochs_clean = ar.fit_transform(epochs)`
+- Update preprocessing pipeline and all classifier training scripts
+
+### 20. Replace custom microstates with pycrostates
+- Replace `shared/features/microstate.py` (custom modified k-means) with pycrostates
+- `pycrostates.cluster.ModKMeans` — same algorithm, JOSS-reviewed, better edge cases
+- Keep thin wrapper for MLflow logging
+
+### 21. Add specparam for parameterized spectral analysis
+- Add specparam (FOOOF) on top of Welch PSD to separate 1/f from oscillatory peaks
+- Critical: 1/f slope changes confound raw band power in addiction/PTSD populations
+- Augment `shared/features/spectral.py` — don't replace Welch, add specparam features alongside
+
+### 22. Add antropy for entropy/complexity features
+- Replace any custom entropy code with antropy (numba-accelerated)
+- Add permutation entropy, sample entropy, spectral entropy, Hjorth parameters
+- Useful for addiction (sample entropy), sleep (permutation entropy), encoding (spectral entropy)
+
+### 23. Update dependencies and tests
+- Add new packages to pyproject.toml
+- Update all existing tests to use new pipeline
+- Verify 21+ tests still pass with refactored code
+- Update CI workflow
+
+---
+
+## Milestone 5: Deployment & Serving
+
+### 24. Model Serving API with BentoML
+- `shared/serving/service.py` — BentoML service for real-time inference
   - POST /predict — accept EEG epoch, return state classification + confidence
   - GET /model — current model metadata
   - GET /health — health check
-- BentoML or FastAPI + TorchServe
+- BentoML chosen over FastAPI+TorchServe: supports mixed models (SVM + CNN + LightGBM)
+- Python preprocessing in serving path (filter → epoch → features → predict)
 
-### 18. Docker Deployment
+### 25. Real-time EEG Streaming with MNE-LSL
+- `shared/serving/stream.py` — MNE-LSL integration for live EEG
+- Hardware → LSL → MNE-LSL stream → filter → epoch → features → model → prediction
+- Required for real-time craving monitoring and encoding quality detection
+
+### 26. Docker Deployment
 - `infrastructure/Dockerfile` — containerized inference server
-- `infrastructure/docker-compose.yml` — full stack: MLflow + API + monitoring
+- `infrastructure/docker-compose.yml` — full stack: MLflow + BentoML API + monitoring
 - Environment variable configuration for model selection
 
-### 19. Monitoring
-- `shared/monitoring/drift.py` — signal drift detection (EEG amplitude distribution shift)
-- `shared/monitoring/quality.py` — signal quality metrics (electrode impedance proxies, noise levels)
+### 27. Production Monitoring
+- `shared/monitoring/drift.py` — NannyML for drift detection + performance estimation
+- `shared/monitoring/quality.py` — EEG signal quality (antropy spectral_entropy + kurtosis)
 - Prometheus metrics endpoint for Grafana dashboards
 
 ---
 
-## Milestone 5: PTSD Classifier + TMR (Later)
+## Milestone 6: PTSD Classifier + TMR Sleep
 
-### 20-24. Trauma Classifier
-- ENIGMA data loader (rsfMRI, switches to Nilearn)
-- PTSD vs control classification (reproduce 75% AUC)
-- Fear conditioning EEG integration
-- Reconsolidation window biomarker extraction (theta/P300)
+### 28-31. Trauma/PTSD Classifier
+- fMRIPrep (Docker) for ENIGMA fMRI preprocessing
+- Nilearn for rsfMRI connectivity, parcellation, classification
+- PTSD vs control classification (target: 75% AUC)
+- Reconsolidation window biomarker extraction (theta/P300 from EEG)
 
-### 25-30. TMR Orchestration
-- Sleep stage classifier from EEG
-- Memory content decoder (reproduce Wang 2019)
-- TMR cue delivery API
-- Valence-aware cue selection
-- End-to-end sleep TMR pipeline
+### 32-36. TMR Sleep Orchestration
+- YASA for automated sleep staging (N1/N2/N3/REM/Wake) — pre-trained, ~85% accuracy
+- YASA spindle and slow oscillation detection
+- selfEEG for SSL pre-training on combined datasets (cross-subject generalization)
+- TMR cue delivery API (valence-aware cue selection)
+- NeuroKit2 for multimodal wearable signals (EDA/PPG/respiration)
+
+### 37. Model Explainability
+- captum for Integrated Gradients + DeepLIFT on EEGNet/ShallowNet
+- pytorch-grad-cam for spatial electrode contribution maps
+- Publishable: which channels drive craving prediction?
 
 ---
 
@@ -179,7 +227,21 @@ A unified EEG-based system with four pluggable classifiers detecting brain state
 - Benchmark comparison table against DSCnet, Tian et al.
 - Paper draft started
 
-### Milestone 4
-- Real-time inference API running in Docker
+### Milestone 4 (Ecosystem Refactor)
+- All custom code replaced with mature packages where available
+- ICA uses mne-icalabel, epochs use autoreject, microstates use pycrostates
+- specparam features added alongside Welch PSD
+- All 21+ tests still pass after refactor
+- CI green
+
+### Milestone 5 (Deployment)
+- Real-time inference API running in Docker via BentoML
 - < 100ms latency for single epoch classification
-- Monitoring dashboard showing signal quality metrics
+- NannyML drift detection active on deployed models
+- MNE-LSL streaming pipeline functional
+
+### Milestone 6 (PTSD + TMR)
+- PTSD classifier trained on ENIGMA via fMRIPrep + Nilearn
+- Sleep staging via YASA matches published accuracy
+- TMR cue delivery system functional
+- Model explainability maps via captum published
