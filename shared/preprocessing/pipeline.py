@@ -43,6 +43,9 @@ class PreprocessingConfig:
     # Bad channel handling
     interpolate_bads: bool = True
 
+    # Autoreject for epoch cleaning
+    use_autoreject: bool = True
+
     # Resampling
     resample_sfreq: Optional[float] = None
 
@@ -153,7 +156,12 @@ def interpolate_bad_channels(raw: mne.io.BaseRaw) -> mne.io.BaseRaw:
 
 
 def apply_ica(raw: mne.io.BaseRaw, config: PreprocessingConfig) -> mne.io.BaseRaw:
-    """Run ICA for artifact rejection (eye blinks, muscle)."""
+    """Run ICA for artifact rejection using mne-icalabel.
+
+    Uses ICLabel neural network to classify ICA components into 7 types:
+    brain, muscle, eye, heart, line_noise, channel_noise, other.
+    Excludes all non-brain components automatically.
+    """
     ica = mne.preprocessing.ICA(
         n_components=config.ica_n_components,
         method=config.ica_method,
@@ -162,29 +170,52 @@ def apply_ica(raw: mne.io.BaseRaw, config: PreprocessingConfig) -> mne.io.BaseRa
     )
     ica.fit(raw)
 
-    # Auto-detect EOG artifacts
-    eog_indices: list[int] = []
-    eog_channels = [ch for ch in raw.ch_names if "eog" in ch.lower()]
-    if eog_channels:
-        eog_indices, _ = ica.find_bads_eog(raw)
-
-    # Auto-detect muscle artifacts via high-frequency power
-    muscle_indices: list[int] = []
+    # Use ICLabel to classify components (7 types)
     try:
-        muscle_indices, _ = ica.find_bads_muscle(raw)
-    except Exception:
-        logger.warning("muscle_artifact_detection_failed")
+        from mne_icalabel import label_components
 
-    exclude = list(set(eog_indices + muscle_indices))
-    ica.exclude = exclude
+        labels = label_components(raw, ica, method="iclabel")
+        component_labels = labels["labels"]
 
-    logger.info(
-        "applied_ica",
-        n_components=ica.n_components_,
-        excluded=exclude,
-        n_eog=len(eog_indices),
-        n_muscle=len(muscle_indices),
-    )
+        # Exclude everything that isn't "brain" or "other"
+        exclude = [
+            i
+            for i, label in enumerate(component_labels)
+            if label not in ("brain", "other")
+        ]
+        ica.exclude = exclude
+
+        logger.info(
+            "applied_ica_iclabel",
+            n_components=ica.n_components_,
+            excluded=exclude,
+            labels={
+                label: component_labels.count(label) for label in set(component_labels)
+            },
+        )
+    except Exception as exc:
+        # Fallback to legacy detection if ICLabel fails
+        # (e.g., insufficient channels or missing montage)
+        logger.warning("iclabel_failed_using_fallback", error=str(exc))
+        eog_indices: list[int] = []
+        eog_channels = [ch for ch in raw.ch_names if "eog" in ch.lower()]
+        if eog_channels:
+            eog_indices, _ = ica.find_bads_eog(raw)
+
+        muscle_indices: list[int] = []
+        try:
+            muscle_indices, _ = ica.find_bads_muscle(raw)
+        except Exception:
+            pass
+
+        exclude = list(set(eog_indices + muscle_indices))
+        ica.exclude = exclude
+
+        logger.info(
+            "applied_ica_fallback",
+            n_components=ica.n_components_,
+            excluded=exclude,
+        )
 
     raw = raw.copy()
     ica.apply(raw)
@@ -209,7 +240,7 @@ def create_epochs(
     events: np.ndarray,
     config: PreprocessingConfig,
 ) -> mne.Epochs:
-    """Create epochs from continuous data."""
+    """Create epochs from continuous data, optionally cleaned with autoreject."""
     epochs = mne.Epochs(
         raw,
         events=events,
@@ -219,6 +250,26 @@ def create_epochs(
         baseline=config.baseline,
         preload=True,
     )
+
+    n_before = len(epochs)
+
+    # Apply autoreject for automated epoch cleaning
+    if config.use_autoreject and len(epochs) > 0:
+        try:
+            from autoreject import AutoReject
+
+            ar = AutoReject(verbose=False)
+            epochs = ar.fit_transform(epochs)
+
+            n_after = len(epochs)
+            logger.info(
+                "applied_autoreject",
+                n_before=n_before,
+                n_after=n_after,
+                n_rejected=n_before - n_after,
+            )
+        except Exception as exc:
+            logger.warning("autoreject_failed", error=str(exc))
 
     logger.info(
         "created_epochs",
