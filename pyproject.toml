@@ -27,9 +27,17 @@ dependencies = [
     "pycrostates>=0.5",
     "specparam>=1.0",
     "antropy>=0.1.6",
+    "bentoml>=1.2",
+    "prometheus-client>=0.20",
 ]
 
 [project.optional-dependencies]
+monitoring = [
+    "nannyml>=0.10",
+]
+streaming = [
+    "mne-lsl>=1.5",
+]
 dev = [
     "pytest>=8.0",
     "pytest-cov>=4.1",
